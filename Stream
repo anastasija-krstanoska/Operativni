@@ -1,0 +1,261 @@
+package mk.ukim.finki.os.streams.impl;
+
+import mk.ukim.finki.os.streams.IOStreamManager;
+
+import java.io.*;
+import java.nio.DoubleBuffer;
+import java.util.Scanner;
+
+public class IOStreamManagerImpl implements IOStreamManager {
+    @Override
+    public void copyFileByteByByte(File from, File to) throws IOException {
+
+        if (!from.exists()) {
+            throw new IOException();
+        }
+        InputStream fis = null;
+        OutputStream fos = null;
+
+        Long startTime = System.currentTimeMillis();
+
+        try {
+            fis = new FileInputStream(from);
+            fos = new FileOutputStream(to);
+
+            int c = -1;
+
+            while ((c = fis.read()) != -1) {
+                fos.write(c);
+                fos.flush();
+            }
+
+        } finally {
+            fis.close();
+            fos.close();
+        }
+
+        Long endTime = System.currentTimeMillis();
+        System.out.println(endTime - startTime);
+
+    }
+
+    @Override
+    public void copyFileByUsingBuffer(String from, String to) throws IOException {
+
+
+        BufferedReader reader = null;
+        BufferedWriter writer = null;
+
+        Long startTime = System.currentTimeMillis();
+
+        try {
+            reader = new BufferedReader(new InputStreamReader(new FileInputStream(from)));
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(to)));
+            String line = null;
+
+            while ((line = reader.readLine()) != null) {
+                writer.write(line);
+                writer.flush();
+            }
+        } finally {
+            if (reader != null) {
+                reader.close();
+            }
+            if (writer != null) {
+                writer.flush();
+                writer.close();
+            }
+        }
+        Long endTime = System.currentTimeMillis();
+        System.out.println(endTime - startTime);
+
+
+    }
+
+    @Override
+    public void printContentOfTxtFile(File f, PrintStream printer) throws IOException {
+        BufferedReader reader = null;
+
+        try {
+            reader = new BufferedReader(new FileReader(f));
+
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                printer.println(line);
+
+            }
+        } finally {
+            if (reader != null) {
+                reader.close();
+            }
+        }
+
+
+    }
+
+    @Override
+    public void readContentFromStdInput(OutputStream to) throws IOException {   //citanje na tekst se dodeka != enter
+
+        BufferedReader reader = null;
+        BufferedWriter writer = null;
+
+        try {
+            reader = new BufferedReader(new InputStreamReader(System.in));
+            //Scanner gotova funkcija == readContentFromStdInput
+            writer = new BufferedWriter(new OutputStreamWriter(to));
+
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                writer.write(line);
+                writer.newLine();
+
+            }
+        } finally {
+            if (reader != null) {
+                reader.close();
+            }
+            if (writer != null) {
+                writer.flush();
+                writer.close();
+            }
+        }
+    }
+
+    @Override
+    public void writeToTextFile(File to, String text, Boolean append) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(to, append));
+        writer.write(text);
+
+        //try catch nema
+
+    }
+
+    @Override
+    public void memoryUnsafeTextFileCopy(File from, File to) throws FileNotFoundException, IOException {
+        BufferedWriter writer = null;
+        BufferedReader reader = null;
+
+        StringBuilder builder = new StringBuilder();
+
+        try {
+            reader = new BufferedReader(new FileReader(from));
+            writer = new BufferedWriter(new FileWriter(to));
+
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                builder.append(line).append("\n");
+            }
+            writer.write(builder.toString());
+        } finally {
+            if (reader != null) {
+                reader.close();
+            }
+            if (writer != null) {
+                writer.flush();
+                writer.close();
+            }
+        }
+    }
+
+    @Override
+    public void memorySafeTextFileCopy(File from, File to) throws FileNotFoundException, IOException {
+        BufferedWriter writer = null;
+        BufferedReader reader = null;
+
+        try {
+            reader = new BufferedReader(new FileReader(from));
+            writer = new BufferedWriter(new FileWriter(to));
+
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                writer.write(line);
+                writer.newLine();
+            }
+        } finally {
+            if (reader != null) {
+                reader.close();
+            }
+            if (writer != null) {
+                writer.flush();
+                writer.close();
+            }
+        }
+
+    }
+
+    @Override
+    public void readFileWithLineNumber(File from, OutputStream out) throws IOException {
+
+        BufferedReader reader = null; //= new BufferedReader(new FileReader(from));
+        PrintWriter writer = null;
+
+        try {
+            reader = new BufferedReader(new FileReader(from));
+            writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(out)));
+            int lineCount = 1;
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                writer.printf("%d:%s \n", lineCount, line);
+                lineCount++;
+
+            }
+
+        } finally {
+            if (reader != null) {
+                reader.close();
+            }
+            if (writer != null) {
+                writer.flush();
+                writer.close();
+            }
+        }
+
+    }
+
+    @Override
+    public void writeBinaryDataToBFile(File to, Object... objects) throws IOException {
+        DataOutputStream dos = null;
+
+
+        try {
+            dos = new DataOutputStream(new FileOutputStream(to));
+            for (Object o : objects) {
+
+                if (o instanceof String) {
+                    dos.writeUTF((String) o);
+                } else if (o instanceof Double) {
+                    dos.writeDouble((Double) o);
+                } else if (o instanceof InputStream) {
+                    dos.writeInt((Integer) o);
+                } else if (o instanceof Boolean) {
+                    dos.writeBoolean((Boolean) o);
+                }
+            }
+        } finally {
+            if (dos != null) {
+                dos.flush();
+                dos.close();
+            }
+        }
+    }
+
+    @Override
+    public void readBinaryDataFromBFile(File from, Object... objects) throws FileNotFoundException, IOException {
+
+    }
+
+    @Override
+    public void writeToRandomAccessFile(File from) throws IOException {
+
+    }
+
+    @Override
+    public void readFromRandomAccessFile(File from, PrintStream out) throws IOException {
+
+    }
+
+    @Override
+    public void rewriteInReverseFile(File from, File to) throws IOException {
+
+    }
+}
